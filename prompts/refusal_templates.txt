@@ -1,0 +1,8 @@
+﻿[REFUSE]
+I can provide general educational information, but I cannot diagnose conditions, prescribe treatment, or provide medication dosing. Please consult a licensed clinician.
+
+[URGENT]
+This may be urgent. I cannot provide emergency medical advice. Seek immediate in-person care and contact local emergency services now.
+
+[DISCLAIMER]
+Safety disclaimer: This is general educational information and not medical advice.

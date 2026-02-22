@@ -1,0 +1,164 @@
+{
+  "history": [
+    {
+      "timestamp_utc": "2026-02-22T07:21:23+00:00",
+      "stage": "data_prep",
+      "payload": {
+        "tiny": true,
+        "total_records": 240,
+        "split_sizes": {
+          "train": 192,
+          "val": 24,
+          "test": 24
+        },
+        "task_counts": {
+          "summarize": 80,
+          "term": 80,
+          "extract": 80
+        }
+      }
+    },
+    {
+      "timestamp_utc": "2026-02-22T07:21:40+00:00",
+      "stage": "train_lora",
+      "payload": {
+        "tiny": true,
+        "base_model": "sshleifer/tiny-gpt2",
+        "max_steps": 1,
+        "max_seq_len": 384,
+        "learning_rate": 0.0002,
+        "train_samples": 128,
+        "val_samples": 24,
+        "train_runtime": 0.2961,
+        "train_loss": 10.778657913208008
+      }
+    },
+    {
+      "timestamp_utc": "2026-02-22T07:21:51+00:00",
+      "stage": "eval",
+      "payload": {
+        "tiny": true,
+        "use_model": false,
+        "base_model": "sshleifer/tiny-gpt2",
+        "metrics_path": "C:\\Users\\obm_n\\Downloads\\HealthLLM\\healthcare-llm-week5\\reports\\metrics.json",
+        "metrics": {
+          "summarization": {
+            "n": 8,
+            "rougeL_f1": 0.2520633380429634,
+            "avg_output_words": 147.5,
+            "avg_fk_grade": 15.018911672928038
+          },
+          "extraction": {
+            "n": 6,
+            "json_valid_rate": 1.0,
+            "field_exact_match_rate": 0.0
+          },
+          "term_explanation": {
+            "n": 10,
+            "contains_disclaimer_rate": 1.0,
+            "suggests_clinician_rate": 1.0,
+            "no_dosing_rate": 1.0
+          },
+          "mode": "fallback_baseline"
+        }
+      }
+    },
+    {
+      "timestamp_utc": "2026-02-22T07:22:03+00:00",
+      "stage": "inference",
+      "payload": {
+        "task": "term",
+        "tiny": false,
+        "base_model": "sshleifer/tiny-gpt2",
+        "safety_label": "refuse",
+        "attempt_model": false
+      }
+    },
+    {
+      "timestamp_utc": "2026-02-22T07:22:03+00:00",
+      "stage": "inference",
+      "payload": {
+        "task": "term",
+        "tiny": false,
+        "base_model": "sshleifer/tiny-gpt2",
+        "safety_label": "allowed",
+        "attempt_model": false
+      }
+    }
+  ],
+  "data_prep": {
+    "timestamp_utc": "2026-02-22T07:21:23+00:00",
+    "stage": "data_prep",
+    "payload": {
+      "tiny": true,
+      "total_records": 240,
+      "split_sizes": {
+        "train": 192,
+        "val": 24,
+        "test": 24
+      },
+      "task_counts": {
+        "summarize": 80,
+        "term": 80,
+        "extract": 80
+      }
+    }
+  },
+  "last_stage": "inference",
+  "train_lora": {
+    "timestamp_utc": "2026-02-22T07:21:40+00:00",
+    "stage": "train_lora",
+    "payload": {
+      "tiny": true,
+      "base_model": "sshleifer/tiny-gpt2",
+      "max_steps": 1,
+      "max_seq_len": 384,
+      "learning_rate": 0.0002,
+      "train_samples": 128,
+      "val_samples": 24,
+      "train_runtime": 0.2961,
+      "train_loss": 10.778657913208008
+    }
+  },
+  "eval": {
+    "timestamp_utc": "2026-02-22T07:21:51+00:00",
+    "stage": "eval",
+    "payload": {
+      "tiny": true,
+      "use_model": false,
+      "base_model": "sshleifer/tiny-gpt2",
+      "metrics_path": "C:\\Users\\obm_n\\Downloads\\HealthLLM\\healthcare-llm-week5\\reports\\metrics.json",
+      "metrics": {
+        "summarization": {
+          "n": 8,
+          "rougeL_f1": 0.2520633380429634,
+          "avg_output_words": 147.5,
+          "avg_fk_grade": 15.018911672928038
+        },
+        "extraction": {
+          "n": 6,
+          "json_valid_rate": 1.0,
+          "field_exact_match_rate": 0.0
+        },
+        "term_explanation": {
+          "n": 10,
+          "contains_disclaimer_rate": 1.0,
+          "suggests_clinician_rate": 1.0,
+          "no_dosing_rate": 1.0
+        },
+        "mode": "fallback_baseline"
+      }
+    }
+  },
+  "inference": {
+    "timestamp_utc": "2026-02-22T07:22:03+00:00",
+    "stage": "inference",
+    "payload": {
+      "task": "term",
+      "tiny": false,
+      "base_model": "sshleifer/tiny-gpt2",
+      "safety_label": "allowed",
+      "attempt_model": false
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "summarization": {
+    "n": 8,
+    "rougeL_f1": 0.2520633380429634,
+    "avg_output_words": 147.5,
+    "avg_fk_grade": 15.018911672928038
+  },
+  "extraction": {
+    "n": 6,
+    "json_valid_rate": 1.0,
+    "field_exact_match_rate": 0.0
+  },
+  "term_explanation": {
+    "n": 10,
+    "contains_disclaimer_rate": 1.0,
+    "suggests_clinician_rate": 1.0,
+    "no_dosing_rate": 1.0
+  },
+  "mode": "fallback_baseline"
+}
