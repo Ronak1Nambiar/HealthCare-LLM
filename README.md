@@ -1,4 +1,4 @@
-﻿# healthcare-llm-week5
+﻿# Healthcare based LLM
 
 Week 5 experiment for a **small, safety-constrained healthcare domain adaptation** using QLoRA.
 
