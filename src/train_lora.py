@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import argparse
 import inspect
@@ -18,7 +18,7 @@ from transformers import (
     TrainingArguments,
 )
 
-from .config import LORA_DIR, PROCESSED_DIR, TrainConfig, ensure_dirs, get_base_model_name
+from .config import DEFAULT_BASE_MODEL, LORA_DIR, PROCESSED_DIR, TrainConfig, ensure_dirs, get_base_model_name
 from .reporting import build_report, update_run_state
 
 
@@ -62,6 +62,18 @@ def tokenize_dataset(dataset: Dataset, tokenizer: AutoTokenizer, max_len: int) -
     return dataset.map(_tok, batched=True, remove_columns=dataset.column_names)
 
 
+def _save_best_checkpoint(output_dir: Path, train_loss: float | None, base_model: str) -> None:
+    """Write a best_checkpoint.txt that tracks which run produced the best adapter."""
+    best_path = output_dir / "best_checkpoint.txt"
+    entry = {
+        "base_model": base_model,
+        "train_loss": train_loss,
+        "adapter_dir": str(output_dir),
+        "is_production_model": base_model == DEFAULT_BASE_MODEL,
+    }
+    best_path.write_text(json.dumps(entry, indent=2), encoding="utf-8")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="QLoRA training for Healthcare LLM Week 5")
     parser.add_argument("--tiny", action="store_true", help="Use tiny model/settings for fast CPU checks")
@@ -77,9 +89,17 @@ def main() -> None:
     cfg = TrainConfig()
     cfg.base_model = get_base_model_name(tiny=args.tiny, override=args.base_model)
     use_cuda = torch.cuda.is_available()
+
+    # CPU fallback — flag this clearly so train_meta reflects reality
+    used_cpu_fallback = False
     if not use_cuda and not args.tiny and args.base_model is None:
         cfg.base_model = get_base_model_name(tiny=True, override=None)
-        print(f"CPU detected. Auto-switching base model to tiny fallback: {cfg.base_model}")
+        used_cpu_fallback = True
+        print(
+            f"[WARNING] CPU detected. Auto-switching base model to tiny fallback: {cfg.base_model}\n"
+            f"  The resulting adapter is NOT compatible with the production model ({DEFAULT_BASE_MODEL}).\n"
+            f"  To train the real model, use a CUDA-enabled machine or set --base_model explicitly."
+        )
 
     if args.max_steps is not None:
         cfg.max_steps = args.max_steps
@@ -170,6 +190,8 @@ def main() -> None:
         "save_strategy": "steps",
         "save_steps": 20,
         "save_total_limit": 2,
+        "load_best_model_at_end": True,
+        "metric_for_best_model": "eval_loss",
         "report_to": "none",
         "fp16": fp16,
         "bf16": bf16,
@@ -192,32 +214,37 @@ def main() -> None:
     trainer.save_model(str(args_out))
     tokenizer.save_pretrained(str(args_out))
 
+    train_loss = getattr(result, "metrics", {}).get("train_loss")
+    _save_best_checkpoint(args_out, train_loss=train_loss, base_model=cfg.base_model)
+
+    meta = {
+        "base_model": cfg.base_model,
+        "intended_production_model": DEFAULT_BASE_MODEL,
+        "used_cpu_fallback_model": used_cpu_fallback,
+        "adapter_compatible_with_production": not used_cpu_fallback,
+        "max_steps": cfg.max_steps,
+        "max_seq_len": cfg.max_seq_len,
+        "lora_r": cfg.lora_r,
+        "lora_alpha": cfg.lora_alpha,
+        "learning_rate": cfg.learning_rate,
+    }
     with (args_out / "train_meta.json").open("w", encoding="utf-8") as f:
-        json.dump(
-            {
-                "base_model": cfg.base_model,
-                "max_steps": cfg.max_steps,
-                "max_seq_len": cfg.max_seq_len,
-                "lora_r": cfg.lora_r,
-                "lora_alpha": cfg.lora_alpha,
-                "learning_rate": cfg.learning_rate,
-            },
-            f,
-            indent=2,
-        )
+        json.dump(meta, f, indent=2)
+
     print(f"Saved LoRA adapter and metadata to {args_out}")
     update_run_state(
         "train_lora",
         {
             "tiny": args.tiny,
             "base_model": cfg.base_model,
+            "used_cpu_fallback_model": used_cpu_fallback,
             "max_steps": cfg.max_steps,
             "max_seq_len": cfg.max_seq_len,
             "learning_rate": cfg.learning_rate,
             "train_samples": len(train_rows),
             "val_samples": len(val_rows),
             "train_runtime": getattr(result, "metrics", {}).get("train_runtime"),
-            "train_loss": getattr(result, "metrics", {}).get("train_loss"),
+            "train_loss": train_loss,
         },
     )
     build_report(trigger="train_lora")

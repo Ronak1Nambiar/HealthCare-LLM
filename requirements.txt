@@ -1,4 +1,4 @@
-﻿transformers>=4.47.0
+transformers>=4.47.0
 peft>=0.13.0
 bitsandbytes>=0.43.3
 accelerate>=1.1.1
@@ -8,3 +8,11 @@ rouge-score>=0.1.2
 numpy>=1.26.0
 torch>=2.3.0
 scikit-learn>=1.5.0
+# GUI
+gradio>=4.40.0
+# Secrets management
+python-dotenv>=1.0.0
+# Hugging Face Hub login (for gated models)
+huggingface_hub>=0.25.0
+# Testing
+pytest>=8.0.0

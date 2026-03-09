@@ -1,7 +1,15 @@
 ﻿from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from pathlib import Path
+
+# Load .env if present (won't fail if python-dotenv is not installed)
+try:
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).resolve().parent.parent / ".env", override=False)
+except ImportError:
+    pass
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
@@ -54,6 +62,19 @@ class TrainConfig:
 def ensure_dirs() -> None:
     for directory in [DATA_DIR, RAW_DIR, PROCESSED_DIR, MODELS_DIR, LORA_DIR, PROMPTS_DIR, REPORTS_DIR]:
         directory.mkdir(parents=True, exist_ok=True)
+
+
+def login_huggingface() -> bool:
+    """Log in to Hugging Face using HF_TOKEN from environment/.env if available."""
+    token = os.environ.get("HF_TOKEN", "").strip()
+    if not token:
+        return False
+    try:
+        from huggingface_hub import login
+        login(token=token, add_to_git_credential=False)
+        return True
+    except Exception:
+        return False
 
 
 def get_base_model_name(tiny: bool = False, override: str | None = None) -> str:

@@ -13,7 +13,7 @@ from datasets import load_dataset
 from .config import PROCESSED_DIR, RAW_DIR, ensure_dirs
 from .reporting import build_report, update_run_state
 
-RNG = random.Random(42)
+RNG = random.Random(42)  # default seed; overridden in main() via --seed
 
 
 @dataclass
@@ -212,7 +212,12 @@ def main() -> None:
     parser.add_argument("--tiny", action="store_true", help="Build a tiny sample dataset for quick tests")
     parser.add_argument("--max_pubmed", type=int, default=800, help="Max PubMedQA source rows to read")
     parser.add_argument("--synthetic_notes", type=int, default=600, help="Number of synthetic extraction samples")
+    parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility")
     args = parser.parse_args()
+
+    # Apply seed globally so synthetic generation and splits are reproducible
+    global RNG
+    RNG = random.Random(args.seed)
 
     ensure_dirs()
     PROCESSED_DIR.mkdir(parents=True, exist_ok=True)

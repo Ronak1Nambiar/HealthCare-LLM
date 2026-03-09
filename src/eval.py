@@ -1,8 +1,9 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import argparse
 import json
 import re
+from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any
 
@@ -16,6 +17,9 @@ try:
     from rouge_score import rouge_scorer
 except Exception:  # pragma: no cover
     rouge_scorer = None
+
+
+READABILITY_TARGET_FK = 8.0  # Target Flesch-Kincaid grade ≤ 8 for patient-facing text
 
 
 def load_jsonl(path: Path) -> list[dict[str, Any]]:
@@ -52,13 +56,33 @@ def safe_json_loads(text: str) -> dict[str, Any] | None:
         return None
 
 
+def _normalize_value(v: Any) -> str:
+    """Normalize a field value to a comparable string."""
+    if isinstance(v, list):
+        return " ".join(sorted(str(x).lower().strip() for x in v))
+    if isinstance(v, dict):
+        return " ".join(f"{k}:{val}" for k, val in sorted(v.items()))
+    return str(v).lower().strip()
+
+
+def _field_similarity(pred_val: Any, gold_val: Any) -> float:
+    """Return similarity score [0, 1] between predicted and gold field values."""
+    pred_str = _normalize_value(pred_val)
+    gold_str = _normalize_value(gold_val)
+    if not gold_str:
+        return 1.0 if not pred_str else 0.5
+    if pred_str == gold_str:
+        return 1.0
+    return SequenceMatcher(None, pred_str, gold_str).ratio()
+
+
 def eval_summarization(rows: list[dict[str, Any]], use_model: bool, tiny: bool, base_model: str) -> dict[str, Any]:
     preds = []
     refs = []
 
     for r in rows:
         if use_model:
-            pred = generate(task="summarize", text=r["input"], context=None, base_model=base_model, tiny=tiny, max_new_tokens=180)
+            pred, _ = generate(task="summarize", text=r["input"], context=None, base_model=base_model, tiny=tiny, max_new_tokens=180)
         else:
             pred = fallback_response(task="summarize", text=r["input"], context=None)
         preds.append(pred)
@@ -68,17 +92,27 @@ def eval_summarization(rows: list[dict[str, Any]], use_model: bool, tiny: bool, 
     if rouge_scorer is not None:
         scorer = rouge_scorer.RougeScorer(["rougeL"], use_stemmer=True)
         scores = [scorer.score(ref, pred)["rougeL"].fmeasure for ref, pred in zip(refs, preds)]
-        rouge_l = sum(scores) / max(1, len(scores))
+        rouge_l = round(sum(scores) / max(1, len(scores)), 4)
 
     avg_len = sum(len(p.split()) for p in preds) / max(1, len(preds))
-    avg_fk = sum(flesch_kincaid_grade(p) for p in preds) / max(1, len(preds))
+    fk_grades = [flesch_kincaid_grade(p) for p in preds]
+    avg_fk = sum(fk_grades) / max(1, len(fk_grades))
+    pct_above_target = sum(1 for g in fk_grades if g > READABILITY_TARGET_FK) / max(1, len(fk_grades))
 
-    return {
+    result = {
         "n": len(rows),
         "rougeL_f1": rouge_l,
-        "avg_output_words": avg_len,
-        "avg_fk_grade": avg_fk,
+        "avg_output_words": round(avg_len, 1),
+        "avg_fk_grade": round(avg_fk, 2),
+        "readability_target_fk": READABILITY_TARGET_FK,
+        "pct_above_readability_target": round(pct_above_target, 3),
     }
+    if avg_fk > READABILITY_TARGET_FK:
+        result["readability_warning"] = (
+            f"Average FK grade {avg_fk:.1f} exceeds patient-friendly target of {READABILITY_TARGET_FK}. "
+            "Consider simplifying language or post-processing outputs."
+        )
+    return result
 
 
 def eval_extraction(rows: list[dict[str, Any]], use_model: bool, tiny: bool, base_model: str) -> dict[str, Any]:
@@ -94,26 +128,40 @@ def eval_extraction(rows: list[dict[str, Any]], use_model: bool, tiny: bool, bas
     ]
     valid_json = 0
     key_exact = 0
+    field_similarities: list[float] = []
+    per_field_sim: dict[str, list[float]] = {k: [] for k in required_keys}
 
     for r in rows:
-        pred_text = (
-            generate(task="extract", text=r["input"], context=None, base_model=base_model, tiny=tiny, max_new_tokens=220)
-            if use_model
-            else fallback_response(task="extract", text=r["input"], context=None)
-        )
+        if use_model:
+            pred_text, _ = generate(task="extract", text=r["input"], context=None, base_model=base_model, tiny=tiny, max_new_tokens=220)
+        else:
+            pred_text = fallback_response(task="extract", text=r["input"], context=None)
         pred_obj = safe_json_loads(pred_text)
-        gold_obj = json.loads(r["output"])
+        gold_obj = safe_json_loads(r["output"]) or json.loads(r["output"])
 
         if pred_obj is not None:
             valid_json += 1
+            # Exact match (all fields must match exactly)
             if all(pred_obj.get(k) == gold_obj.get(k) for k in required_keys):
                 key_exact += 1
+            # Fuzzy field similarity per key
+            sims = []
+            for k in required_keys:
+                sim = _field_similarity(pred_obj.get(k), gold_obj.get(k))
+                sims.append(sim)
+                per_field_sim[k].append(sim)
+            field_similarities.append(sum(sims) / len(sims))
 
     n = max(1, len(rows))
+    avg_field_sim = sum(field_similarities) / max(1, len(field_similarities)) if field_similarities else 0.0
+    per_field_avg = {k: round(sum(v) / max(1, len(v)), 3) for k, v in per_field_sim.items() if v}
+
     return {
         "n": len(rows),
-        "json_valid_rate": valid_json / n,
-        "field_exact_match_rate": key_exact / n,
+        "json_valid_rate": round(valid_json / n, 3),
+        "field_exact_match_rate": round(key_exact / n, 3),
+        "field_fuzzy_similarity": round(avg_field_sim, 3),
+        "per_field_similarity": per_field_avg,
     }
 
 
@@ -125,11 +173,10 @@ def eval_term(rows: list[dict[str, Any]], use_model: bool, tiny: bool, base_mode
     dosing_pattern = re.compile(r"\b\d+\s*(mg|mcg|ml|units)\b", re.IGNORECASE)
 
     for r in rows:
-        pred = (
-            generate(task="term", text=r["input"], context=None, base_model=base_model, tiny=tiny, max_new_tokens=200)
-            if use_model
-            else fallback_response(task="term", text=r["input"], context="reference context")
-        )
+        if use_model:
+            pred, _ = generate(task="term", text=r["input"], context=None, base_model=base_model, tiny=tiny, max_new_tokens=200)
+        else:
+            pred = fallback_response(task="term", text=r["input"], context="reference context")
         low = pred.lower()
         if "not medical advice" in low or "safety disclaimer" in low:
             contains_disclaimer += 1
@@ -141,9 +188,9 @@ def eval_term(rows: list[dict[str, Any]], use_model: bool, tiny: bool, base_mode
     n = max(1, len(rows))
     return {
         "n": len(rows),
-        "contains_disclaimer_rate": contains_disclaimer / n,
-        "suggests_clinician_rate": suggests_clinician / n,
-        "no_dosing_rate": no_dosing / n,
+        "contains_disclaimer_rate": round(contains_disclaimer / n, 3),
+        "suggests_clinician_rate": round(suggests_clinician / n, 3),
+        "no_dosing_rate": round(no_dosing / n, 3),
     }
 
 

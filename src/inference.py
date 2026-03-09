@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import argparse
 import json
@@ -14,11 +14,27 @@ from .config import LORA_DIR, PROMPTS_DIR, ensure_dirs, get_base_model_name
 from .reporting import build_report, log_question, update_run_state
 from .safety import append_disclaimer, classify_request, refusal_response, urgent_response
 
+# Special tokens that could be injected to manipulate prompts
+_INJECTION_TOKENS = re.compile(
+    r"(###\s*(Instruction|Input|Response|System)|"
+    r"<\|im_start\|>|<\|im_end\|>|<\|endoftext\|>|"
+    r"\[INST\]|\[/INST\]|<<SYS>>|<</SYS>>|"
+    r"<s>|</s>)",
+    re.IGNORECASE,
+)
+
+
+def sanitize_input(text: str) -> str:
+    """Strip prompt-injection tokens from user-supplied text."""
+    return _INJECTION_TOKENS.sub("", text).strip()
+
 
 def read_text(input_text: str | None, input_file: str | None) -> str:
     if input_file:
-        return Path(input_file).read_text(encoding="utf-8").strip()
-    return (input_text or "").strip()
+        raw = Path(input_file).read_text(encoding="utf-8").strip()
+    else:
+        raw = (input_text or "").strip()
+    return sanitize_input(raw)
 
 
 def load_prompt_file(path: Path, fallback: str) -> str:
@@ -28,7 +44,9 @@ def load_prompt_file(path: Path, fallback: str) -> str:
 
 
 def format_user_prompt(task: str, text: str, context: str | None) -> str:
-    ctx_block = f"\nContext:\n{context.strip()}\n" if context else ""
+    # context is also sanitized before insertion
+    safe_context = sanitize_input(context) if context else None
+    ctx_block = f"\nContext:\n{safe_context.strip()}\n" if safe_context else ""
     if task == "summarize":
         return (
             "Task: Summarize the following medical education content for a patient in exactly 5 bullets. "
@@ -123,7 +141,11 @@ def generate(
     tiny: bool,
     max_new_tokens: int,
     attempt_model: bool = True,
-) -> str:
+) -> tuple[str, bool]:
+    """
+    Returns (response_text, used_fallback).
+    used_fallback=True means the response came from the deterministic fallback, not the LLM.
+    """
     system_prompt = load_prompt_file(
         PROMPTS_DIR / "system.txt",
         "You are an education-only healthcare assistant. No diagnosis, no treatment, no dosing.",
@@ -131,11 +153,11 @@ def generate(
 
     guard = classify_request(f"{task}\n{text}\n{context or ''}")
     if guard.label == "urgent":
-        return urgent_response()
+        return urgent_response(), True
     if guard.label == "refuse":
-        return refusal_response(guard.reason)
+        return refusal_response(guard.reason), True
     if not attempt_model:
-        return fallback_response(task=task, text=text, context=context)
+        return fallback_response(task=task, text=text, context=context), True
 
     user_prompt = format_user_prompt(task=task, text=text, context=context)
     full_prompt = f"{system_prompt}\n\n{user_prompt}\n\nAnswer:"
@@ -161,15 +183,15 @@ def generate(
         if task == "term":
             low = final.lower()
             if "what to ask your clinician" not in low or "citation" not in low:
-                return fallback_response(task=task, text=text, context=context)
+                return fallback_response(task=task, text=text, context=context), True
         if task == "extract" and "{" not in final:
-            return fallback_response(task=task, text=text, context=context)
+            return fallback_response(task=task, text=text, context=context), True
         if task == "summarize" and final.count("- ") < 3:
-            return fallback_response(task=task, text=text, context=context)
-        return final
+            return fallback_response(task=task, text=text, context=context), True
+        return final, False
     except Exception as exc:
         print(f"Warning: generation fallback activated ({exc})")
-        return fallback_response(task=task, text=text, context=context)
+        return fallback_response(task=task, text=text, context=context), True
 
 
 def main() -> None:
@@ -195,7 +217,7 @@ def main() -> None:
         model_name = get_base_model_name(tiny=True, override=None)
         print(f"CPU detected. Auto-switching model to tiny fallback: {model_name}")
     attempt_model = has_cuda or args.force_model
-    output = generate(
+    output, used_fallback = generate(
         task=args.task,
         text=text,
         context=args.context,
@@ -204,13 +226,17 @@ def main() -> None:
         max_new_tokens=args.max_new_tokens,
         attempt_model=attempt_model,
     )
+
+    if used_fallback and attempt_model:
+        print("[Notice] Response generated using deterministic fallback (model output failed validation).")
+
     guard = classify_request(f"{args.task}\n{text}\n{args.context or ''}")
     log_question(
         task=args.task,
         prompt_text=text,
         safety_label=guard.label,
         response_preview=output,
-        used_model=(attempt_model and guard.label == "allowed"),
+        used_model=(attempt_model and guard.label == "allowed" and not used_fallback),
     )
     update_run_state(
         "inference",
@@ -220,6 +246,7 @@ def main() -> None:
             "base_model": model_name,
             "safety_label": guard.label,
             "attempt_model": attempt_model,
+            "used_fallback": used_fallback,
         },
     )
     build_report(trigger="inference")

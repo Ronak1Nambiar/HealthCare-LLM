@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m pytest tests/ --collect-only -q)",
+      "Bash(python -c \"import src.safety; r = src.safety.classify_request\\(''chest pain''\\); print\\(r\\)\")",
+      "Bash(python -c \":*)"
+    ]
+  }
+}
