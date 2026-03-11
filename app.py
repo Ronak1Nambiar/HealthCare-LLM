@@ -177,17 +177,15 @@ def run_inference(
 # Build UI
 # ──────────────────────────────────────────────────────────────
 
+CUSTOM_CSS = """
+    .response-box textarea { font-size: 14px; line-height: 1.6; }
+    .status-bar { font-family: monospace; font-size: 13px; color: #555; }
+    #header { text-align: center; margin-bottom: 8px; }
+    .badge-row { display: flex; align-items: center; gap: 8px; }
+"""
+
 def build_ui() -> gr.Blocks:
-    with gr.Blocks(
-        title="HealthCare LLM",
-        theme=gr.themes.Soft(primary_hue="blue", neutral_hue="slate"),
-        css="""
-            .response-box textarea { font-size: 14px; line-height: 1.6; }
-            .status-bar { font-family: monospace; font-size: 13px; color: #555; }
-            #header { text-align: center; margin-bottom: 8px; }
-            .badge-row { display: flex; align-items: center; gap: 8px; }
-        """,
-    ) as demo:
+    with gr.Blocks(title="HealthCare LLM") as demo:
 
         gr.Markdown(
             """
@@ -241,8 +239,7 @@ _All outputs are general educational information. Always consult a licensed clin
                             lines=18,
                             interactive=False,
                             elem_classes=["response-box"],
-                            show_copy_button=True,
-                        )
+                                                    )
 
                 def do_submit(task, inp, ctx):
                     resp, badge, status = run_inference(task, inp, ctx, "", False, 220, False)
@@ -298,7 +295,7 @@ _All outputs are general educational information. Always consult a licensed clin
                     with gr.Column(scale=2):
                         safety_html2 = gr.HTML(label="Safety Label")
                         status_txt2 = gr.Textbox(label="Status", interactive=False, elem_classes=["status-bar"])
-                        response_box2 = gr.Textbox(label="Response", lines=15, interactive=False, show_copy_button=True)
+                        response_box2 = gr.Textbox(label="Response", lines=15, interactive=False)
 
                 submit_btn2.click(
                     fn=run_inference,
@@ -352,7 +349,7 @@ _All outputs are general educational information. Always consult a licensed clin
                 run_example_btn = gr.Button("Run Example", variant="secondary")
                 example_safety = gr.HTML(label="Safety")
                 example_status = gr.Textbox(label="Status", interactive=False)
-                example_response = gr.Textbox(label="Response", lines=10, interactive=False, show_copy_button=True)
+                example_response = gr.Textbox(label="Response", lines=10, interactive=False)
 
                 def run_example(task, inp, ctx):
                     return run_inference(task, inp, ctx, "", False, 220, False)
@@ -417,7 +414,7 @@ All outputs include a mandatory safety disclaimer.
 def main() -> None:
     parser = argparse.ArgumentParser(description="HealthCare LLM Gradio GUI")
     parser.add_argument("--share", action="store_true", help="Create a public Gradio share link")
-    parser.add_argument("--port", type=int, default=7860, help="Port to run on (default: 7860)")
+    parser.add_argument("--port", type=int, default=8080, help="Port to run on (default: 8080)")
     parser.add_argument("--host", type=str, default="127.0.0.1", help="Host address (default: 127.0.0.1)")
     args = parser.parse_args()
 
@@ -432,6 +429,8 @@ def main() -> None:
         server_port=args.port,
         share=args.share,
         show_error=True,
+        theme=gr.themes.Soft(primary_hue="blue", neutral_hue="slate"),
+        css=CUSTOM_CSS,
     )
 
 

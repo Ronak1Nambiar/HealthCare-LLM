@@ -84,6 +84,18 @@
         "safety_label": "allowed",
         "attempt_model": false
       }
+    },
+    {
+      "timestamp_utc": "2026-03-09T04:14:35+00:00",
+      "stage": "inference",
+      "payload": {
+        "task": "term",
+        "tiny": false,
+        "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+        "safety_label": "allowed",
+        "attempt_model": false,
+        "used_fallback": true
+      }
     }
   ],
   "data_prep": {
@@ -151,14 +163,15 @@
     }
   },
   "inference": {
-    "timestamp_utc": "2026-02-22T07:22:03+00:00",
+    "timestamp_utc": "2026-03-09T04:14:35+00:00",
     "stage": "inference",
     "payload": {
       "task": "term",
       "tiny": false,
-      "base_model": "sshleifer/tiny-gpt2",
+      "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
       "safety_label": "allowed",
-      "attempt_model": false
+      "attempt_model": false,
+      "used_fallback": true
     }
   }
 }
