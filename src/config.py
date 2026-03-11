@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import os
 from dataclasses import dataclass
@@ -17,6 +17,7 @@ RAW_DIR = DATA_DIR / "raw"
 PROCESSED_DIR = DATA_DIR / "processed"
 MODELS_DIR = ROOT / "models"
 LORA_DIR = MODELS_DIR / "lora"
+RAG_DIR = MODELS_DIR / "rag"
 PROMPTS_DIR = ROOT / "prompts"
 REPORTS_DIR = ROOT / "reports"
 
@@ -60,7 +61,7 @@ class TrainConfig:
 
 
 def ensure_dirs() -> None:
-    for directory in [DATA_DIR, RAW_DIR, PROCESSED_DIR, MODELS_DIR, LORA_DIR, PROMPTS_DIR, REPORTS_DIR]:
+    for directory in [DATA_DIR, RAW_DIR, PROCESSED_DIR, MODELS_DIR, LORA_DIR, RAG_DIR, PROMPTS_DIR, REPORTS_DIR]:
         directory.mkdir(parents=True, exist_ok=True)
 
 

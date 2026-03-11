@@ -14,7 +14,15 @@ from .config import LORA_DIR, PROMPTS_DIR, ensure_dirs, get_base_model_name
 from .reporting import build_report, log_question, update_run_state
 from .safety import append_disclaimer, classify_request, refusal_response, urgent_response
 
-# Special tokens that could be injected to manipulate prompts
+# ── Constants ──────────────────────────────────────────────────────────────
+
+# LLM mode identifiers (used throughout inference + GUI)
+MODE_BASE = "base"
+MODE_FINETUNED = "finetuned"
+MODE_RAG = "rag"
+ALL_MODES = (MODE_BASE, MODE_FINETUNED, MODE_RAG)
+
+# Prompt-injection tokens to strip from user input
 _INJECTION_TOKENS = re.compile(
     r"(###\s*(Instruction|Input|Response|System)|"
     r"<\|im_start\|>|<\|im_end\|>|<\|endoftext\|>|"
@@ -23,6 +31,8 @@ _INJECTION_TOKENS = re.compile(
     re.IGNORECASE,
 )
 
+
+# ── Input helpers ──────────────────────────────────────────────────────────
 
 def sanitize_input(text: str) -> str:
     """Strip prompt-injection tokens from user-supplied text."""
@@ -44,7 +54,6 @@ def load_prompt_file(path: Path, fallback: str) -> str:
 
 
 def format_user_prompt(task: str, text: str, context: str | None) -> str:
-    # context is also sanitized before insertion
     safe_context = sanitize_input(context) if context else None
     ctx_block = f"\nContext:\n{safe_context.strip()}\n" if safe_context else ""
     if task == "summarize":
@@ -67,7 +76,18 @@ def format_user_prompt(task: str, text: str, context: str | None) -> str:
     )
 
 
-def load_model_and_tokenizer(base_model: str, tiny: bool = False):
+# ── Model loading ──────────────────────────────────────────────────────────
+
+def load_model_and_tokenizer(
+    base_model: str,
+    tiny: bool = False,
+    use_lora: bool = True,
+):
+    """
+    Load tokenizer + model.
+    use_lora=False → pure base model, no adapter (Base Model mode).
+    use_lora=True  → loads LoRA adapter if models/lora/adapter_config.json exists.
+    """
     use_cuda = torch.cuda.is_available()
     kwargs: dict[str, Any] = {"trust_remote_code": True}
     if use_cuda:
@@ -87,11 +107,13 @@ def load_model_and_tokenizer(base_model: str, tiny: bool = False):
     model = AutoModelForCausalLM.from_pretrained(base_model, **kwargs)
 
     adapter_config = LORA_DIR / "adapter_config.json"
-    if adapter_config.exists() and not tiny:
+    if use_lora and adapter_config.exists() and not tiny:
         model = PeftModel.from_pretrained(model, str(LORA_DIR))
 
     return model, tokenizer
 
+
+# ── Fallback (no-model) response ───────────────────────────────────────────
 
 def fallback_response(task: str, text: str, context: str | None) -> str:
     if task == "extract":
@@ -133,6 +155,8 @@ def fallback_response(task: str, text: str, context: str | None) -> str:
     return append_disclaimer(out)
 
 
+# ── Core generation ────────────────────────────────────────────────────────
+
 def generate(
     task: str,
     text: str,
@@ -141,10 +165,18 @@ def generate(
     tiny: bool,
     max_new_tokens: int,
     attempt_model: bool = True,
+    mode: str = MODE_FINETUNED,
 ) -> tuple[str, bool]:
     """
+    Generate a response.
+
+    mode:
+        "base"      — raw base model, no LoRA adapter, no retrieval
+        "finetuned" — base model + LoRA adapter (if adapter exists)
+        "rag"       — base model + LoRA adapter + TF-IDF retrieved context
+
     Returns (response_text, used_fallback).
-    used_fallback=True means the response came from the deterministic fallback, not the LLM.
+    used_fallback=True means the response came from the deterministic fallback.
     """
     system_prompt = load_prompt_file(
         PROMPTS_DIR / "system.txt",
@@ -159,11 +191,33 @@ def generate(
     if not attempt_model:
         return fallback_response(task=task, text=text, context=context), True
 
-    user_prompt = format_user_prompt(task=task, text=text, context=context)
+    # ── RAG: inject retrieved context ─────────────────────────────────────
+    effective_context = context
+    if mode == MODE_RAG:
+        try:
+            from .rag import get_retriever
+            retriever = get_retriever()
+            if retriever.is_built:
+                rag_ctx = retriever.format_context(f"{task} {text}", top_k=3)
+                if rag_ctx:
+                    effective_context = (
+                        f"{rag_ctx}\n\nUser-provided context:\n{context}"
+                        if context else rag_ctx
+                    )
+            else:
+                print("[RAG] Index not built — falling back to no-retrieval mode.")
+        except Exception as exc:
+            print(f"[RAG] Retrieval error: {exc}")
+
+    # ── Load model ────────────────────────────────────────────────────────
+    use_lora = mode in (MODE_FINETUNED, MODE_RAG)
+    user_prompt = format_user_prompt(task=task, text=text, context=effective_context)
     full_prompt = f"{system_prompt}\n\n{user_prompt}\n\nAnswer:"
 
     try:
-        model, tokenizer = load_model_and_tokenizer(base_model=base_model, tiny=tiny)
+        model, tokenizer = load_model_and_tokenizer(
+            base_model=base_model, tiny=tiny, use_lora=use_lora
+        )
         device = model.device
         inputs = tokenizer(full_prompt, return_tensors="pt", truncation=True, max_length=1024).to(device)
 
@@ -180,6 +234,8 @@ def generate(
         decoded = tokenizer.decode(outputs[0], skip_special_tokens=True)
         answer = decoded.split("Answer:")[-1].strip() if "Answer:" in decoded else decoded.strip()
         final = append_disclaimer(answer)
+
+        # Validate output quality; fall back to deterministic if needed
         if task == "term":
             low = final.lower()
             if "what to ask your clinician" not in low or "citation" not in low:
@@ -188,14 +244,18 @@ def generate(
             return fallback_response(task=task, text=text, context=context), True
         if task == "summarize" and final.count("- ") < 3:
             return fallback_response(task=task, text=text, context=context), True
+
         return final, False
+
     except Exception as exc:
         print(f"Warning: generation fallback activated ({exc})")
         return fallback_response(task=task, text=text, context=context), True
 
 
+# ── CLI ────────────────────────────────────────────────────────────────────
+
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Inference for Healthcare LLM Week 5")
+    parser = argparse.ArgumentParser(description="Inference for Healthcare LLM")
     parser.add_argument("--task", choices=["term", "summarize", "extract"], required=True)
     parser.add_argument("--input", type=str, default=None)
     parser.add_argument("--input_file", type=str, default=None)
@@ -204,6 +264,12 @@ def main() -> None:
     parser.add_argument("--tiny", action="store_true")
     parser.add_argument("--force_model", action="store_true", help="Attempt model generation on CPU")
     parser.add_argument("--max_new_tokens", type=int, default=220)
+    parser.add_argument(
+        "--mode",
+        choices=list(ALL_MODES),
+        default=MODE_FINETUNED,
+        help="LLM mode: base | finetuned | rag",
+    )
     args = parser.parse_args()
 
     ensure_dirs()
@@ -217,6 +283,7 @@ def main() -> None:
         model_name = get_base_model_name(tiny=True, override=None)
         print(f"CPU detected. Auto-switching model to tiny fallback: {model_name}")
     attempt_model = has_cuda or args.force_model
+
     output, used_fallback = generate(
         task=args.task,
         text=text,
@@ -225,6 +292,7 @@ def main() -> None:
         tiny=args.tiny,
         max_new_tokens=args.max_new_tokens,
         attempt_model=attempt_model,
+        mode=args.mode,
     )
 
     if used_fallback and attempt_model:
@@ -247,6 +315,7 @@ def main() -> None:
             "safety_label": guard.label,
             "attempt_model": attempt_model,
             "used_fallback": used_fallback,
+            "mode": args.mode,
         },
     )
     build_report(trigger="inference")
