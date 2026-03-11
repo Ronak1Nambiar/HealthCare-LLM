@@ -3,7 +3,23 @@
     "allow": [
       "Bash(python -m pytest tests/ --collect-only -q)",
       "Bash(python -c \"import src.safety; r = src.safety.classify_request\\(''chest pain''\\); print\\(r\\)\")",
-      "Bash(python -c \":*)"
+      "Bash(python -c \":*)",
+      "Bash(python -c \"import gradio; print\\(gradio.__version__\\)\")",
+      "Bash(python -c \"import inspect, gradio as gr; params = inspect.signature\\(gr.Blocks.launch\\).parameters; print\\(list\\(params.keys\\(\\)\\)\\)\")",
+      "Bash(timeout 10 python app.py)",
+      "Bash(timeout 15 python app.py)",
+      "Bash(netstat -ano)",
+      "Bash(findstr :7860)",
+      "Bash(taskkill /PID 117424 /F)",
+      "Bash(cmd /c \"taskkill /PID 117424 /F\")",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(cmd /c \"netstat -ano | findstr :786\")",
+      "Bash(cmd /c \"for /f \"\"tokens=5\"\" %a in \\(''netstat -ano ^| findstr :786''\\) do taskkill /PID %a /F\")",
+      "Bash(cmd /c \"taskkill /F /IM python.exe\")",
+      "Bash(cmd /c \"start python app.py\")",
+      "Bash(cmd /c \"netstat -ano | findstr LISTEN | findstr :78\")",
+      "Bash(curl -s http://127.0.0.1:8080)",
+      "Bash(python -c \"import webbrowser; webbrowser.open\\(''http://127.0.0.1:8080''\\)\")"
     ]
   }
 }
