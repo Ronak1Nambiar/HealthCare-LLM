@@ -16,7 +16,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import gradio as gr
 
-from src.config import LORA_DIR, RAG_DIR, REPORTS_DIR, ensure_dirs, get_base_model_name, login_huggingface
+from src.config import (
+    ALTERNATE_MODELS,
+    DEFAULT_BASE_MODEL,
+    LORA_DIR,
+    RAG_DIR,
+    REPORTS_DIR,
+    ensure_dirs,
+    get_base_model_name,
+    login_huggingface,
+)
 from src.inference import (
     MODE_BASE,
     MODE_FINETUNED,
@@ -226,6 +235,22 @@ def run_inference(
     return response, badges, status
 
 
+def detect_task(text: str) -> str:
+    """Auto-detect task type from input text heuristics."""
+    lower = text.lower()
+    clinical_keywords = [
+        "chief complaint", "vitals", "allergies", "past history",
+        "medications", "meds:", "symptoms:", "duration:", "red flags",
+        "bp:", "heart rate:", "spo2:", "temp:",
+    ]
+    if any(kw in lower for kw in clinical_keywords):
+        return "Extract Fields"
+    summarize_keywords = ["summarize", "summary", "summarise", "key points", "bullet"]
+    if any(kw in lower for kw in summarize_keywords) or len(text.strip()) > 200:
+        return "Summarize"
+    return "Explain Term"
+
+
 # ── Background training helpers ────────────────────────────────────────────
 
 _training_log: list[str] = []
@@ -315,7 +340,7 @@ _All outputs are general educational information. Always consult a licensed clin
             with gr.TabItem("Chat"):
                 with gr.Row():
                     with gr.Column(scale=2):
-                        llm_mode_1 = gr.Radio(
+                        llm_mode_1 = gr.Dropdown(
                             choices=LLM_MODE_LABELS,
                             value=DEFAULT_LLM_MODE,
                             label="LLM Mode",
@@ -324,19 +349,12 @@ _All outputs are general educational information. Always consult a licensed clin
                                 "Fine-tuned: QLoRA adapter · "
                                 "RAG: retrieval-augmented"
                             ),
-                            elem_classes=["mode-selector"],
-                        )
-                        task_radio = gr.Radio(
-                            choices=["Summarize", "Extract Fields", "Explain Term"],
-                            value="Explain Term",
-                            label="Task",
                         )
                         user_input = gr.Textbox(
-                            label="Your Input",
+                            label="Your Question",
                             placeholder=(
-                                "Summarize: paste medical education text here\n"
-                                "Extract: paste a de-identified clinical note\n"
-                                "Explain Term: type a medical term or question"
+                                "Ask a medical question, paste a clinical note, or type a term to explain.\n"
+                                "Task is detected automatically — just press Enter or click Submit."
                             ),
                             lines=6,
                         )
@@ -363,7 +381,8 @@ _All outputs are general educational information. Always consult a licensed clin
                             elem_classes=["response-box"],
                         )
 
-                def do_submit(mode, task, inp, ctx):
+                def do_submit(mode, inp, ctx):
+                    task = detect_task(inp)
                     return run_inference(task, inp, ctx, mode, "", False, 220, False)
 
                 def do_clear():
@@ -371,7 +390,12 @@ _All outputs are general educational information. Always consult a licensed clin
 
                 submit_btn.click(
                     fn=do_submit,
-                    inputs=[llm_mode_1, task_radio, user_input, context_box],
+                    inputs=[llm_mode_1, user_input, context_box],
+                    outputs=[response_box, badges_html, status_txt],
+                )
+                user_input.submit(
+                    fn=do_submit,
+                    inputs=[llm_mode_1, user_input, context_box],
                     outputs=[response_box, badges_html, status_txt],
                 )
                 clear_btn.click(
@@ -384,21 +408,23 @@ _All outputs are general educational information. Always consult a licensed clin
                 with gr.Row():
                     with gr.Column(scale=1):
                         gr.Markdown("### LLM Mode")
-                        llm_mode_2 = gr.Radio(
+                        llm_mode_2 = gr.Dropdown(
                             choices=LLM_MODE_LABELS,
                             value=DEFAULT_LLM_MODE,
                             label="Select LLM",
                             info=(
-                                "**Base Model**: raw Qwen2.5-1.5B, no fine-tuning, no retrieval\n"
-                                "**Fine-tuned**: QLoRA-trained on PubMedQA + synthetic notes\n"
-                                "**RAG**: retrieves relevant documents → injects as context"
+                                "Base Model: raw Qwen2.5-1.5B, no fine-tuning · "
+                                "Fine-tuned: QLoRA-trained on PubMedQA + synthetic notes · "
+                                "RAG: retrieves relevant documents → injects as context"
                             ),
-                            elem_classes=["mode-selector"],
                         )
                         gr.Markdown("### Advanced Settings")
-                        model_override = gr.Textbox(
+                        model_override = gr.Dropdown(
+                            choices=[""] + [DEFAULT_BASE_MODEL] + ALTERNATE_MODELS,
+                            value="",
                             label="Base Model Override",
-                            placeholder="Leave blank to use default (Qwen/Qwen2.5-1.5B-Instruct)",
+                            allow_custom_value=True,
+                            info="Leave blank for default. Select a preset or type a HuggingFace model ID.",
                         )
                         use_tiny = gr.Checkbox(label="Use tiny model (CPU-safe)", value=False)
                         force_fallback = gr.Checkbox(
@@ -533,11 +559,10 @@ Run these steps in order (or individually if you already have the data):
 **Safety-blocked (Urgent):** Input: `I have severe chest pain and shortness of breath`
 """)
                 with gr.Row():
-                    example_mode = gr.Radio(
+                    example_mode = gr.Dropdown(
                         choices=LLM_MODE_LABELS,
                         value=DEFAULT_LLM_MODE,
                         label="LLM Mode",
-                        elem_classes=["mode-selector"],
                     )
                     example_task = gr.Radio(
                         choices=["Summarize", "Extract Fields", "Explain Term"],

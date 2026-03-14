@@ -225,8 +225,9 @@ def generate(
             outputs = model.generate(
                 **inputs,
                 max_new_tokens=max_new_tokens,
-                temperature=0.2,
-                do_sample=False,
+                temperature=0.7,
+                do_sample=True,
+                top_p=0.9,
                 eos_token_id=tokenizer.eos_token_id,
                 pad_token_id=tokenizer.eos_token_id,
             )
