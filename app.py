@@ -615,7 +615,7 @@ python -m src.eval
 def main() -> None:
     parser = argparse.ArgumentParser(description="HealthCare LLM Gradio GUI")
     parser.add_argument("--share", action="store_true", help="Create a public Gradio share link")
-    parser.add_argument("--port", type=int, default=8080, help="Port to run on (default: 8080)")
+    parser.add_argument("--port", type=int, default=7000, help="Port to run on (default: 7000)")
     parser.add_argument("--host", type=str, default="127.0.0.1", help="Host address")
     args = parser.parse_args()
 

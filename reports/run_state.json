@@ -213,6 +213,71 @@
         "attempt_model": false,
         "used_fallback": true
       }
+    },
+    {
+      "timestamp_utc": "2026-03-11T23:14:04+00:00",
+      "stage": "inference",
+      "payload": {
+        "task": "term",
+        "llm_mode": "finetuned",
+        "tiny": false,
+        "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+        "safety_label": "allowed",
+        "attempt_model": false,
+        "used_fallback": true
+      }
+    },
+    {
+      "timestamp_utc": "2026-03-11T23:14:30+00:00",
+      "stage": "inference",
+      "payload": {
+        "task": "term",
+        "llm_mode": "finetuned",
+        "tiny": false,
+        "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+        "safety_label": "refuse",
+        "attempt_model": false,
+        "used_fallback": true
+      }
+    },
+    {
+      "timestamp_utc": "2026-03-11T23:14:42+00:00",
+      "stage": "inference",
+      "payload": {
+        "task": "term",
+        "llm_mode": "base",
+        "tiny": false,
+        "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+        "safety_label": "refuse",
+        "attempt_model": false,
+        "used_fallback": true
+      }
+    },
+    {
+      "timestamp_utc": "2026-03-11T23:14:43+00:00",
+      "stage": "inference",
+      "payload": {
+        "task": "term",
+        "llm_mode": "rag",
+        "tiny": false,
+        "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+        "safety_label": "refuse",
+        "attempt_model": false,
+        "used_fallback": true
+      }
+    },
+    {
+      "timestamp_utc": "2026-03-11T23:15:15+00:00",
+      "stage": "inference",
+      "payload": {
+        "task": "term",
+        "llm_mode": "rag",
+        "tiny": false,
+        "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+        "safety_label": "urgent",
+        "attempt_model": false,
+        "used_fallback": true
+      }
     }
   ],
   "data_prep": {
@@ -280,14 +345,14 @@
     }
   },
   "inference": {
-    "timestamp_utc": "2026-03-11T03:13:04+00:00",
+    "timestamp_utc": "2026-03-11T23:15:15+00:00",
     "stage": "inference",
     "payload": {
       "task": "term",
-      "llm_mode": "finetuned",
+      "llm_mode": "rag",
       "tiny": false,
       "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
-      "safety_label": "allowed",
+      "safety_label": "urgent",
       "attempt_model": false,
       "used_fallback": true
     }
