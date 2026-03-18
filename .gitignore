@@ -1,5 +1,26 @@
+# ── IDE / OS ──────────────────────────────────────────────────────────────────
 .claude/settings.local.json
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+.env
+*.log
+
+# ── Private: reports, logs, run artifacts ────────────────────────────────────
+reports/
+app_startup.log
+
+# ── Private: training / processed data ───────────────────────────────────────
+data/processed/
+
+# ── Private: model weights & indices ─────────────────────────────────────────
+models/lora/
+models/rag/
+
+# ── Private: notes and patient-like test data ─────────────────────────────────
+note.txt
+
+# ── Private: presentation & generation scripts ───────────────────────────────
+*.pptx
+make_presentation.py
