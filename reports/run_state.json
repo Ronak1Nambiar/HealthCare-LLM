@@ -278,6 +278,45 @@
         "attempt_model": false,
         "used_fallback": true
       }
+    },
+    {
+      "timestamp_utc": "2026-03-18T23:02:39+00:00",
+      "stage": "inference",
+      "payload": {
+        "task": "term",
+        "llm_mode": "base",
+        "tiny": false,
+        "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+        "safety_label": "refuse",
+        "attempt_model": false,
+        "used_fallback": true
+      }
+    },
+    {
+      "timestamp_utc": "2026-03-18T23:02:46+00:00",
+      "stage": "inference",
+      "payload": {
+        "task": "term",
+        "llm_mode": "finetuned",
+        "tiny": false,
+        "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+        "safety_label": "refuse",
+        "attempt_model": false,
+        "used_fallback": true
+      }
+    },
+    {
+      "timestamp_utc": "2026-03-18T23:02:51+00:00",
+      "stage": "inference",
+      "payload": {
+        "task": "term",
+        "llm_mode": "rag",
+        "tiny": false,
+        "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+        "safety_label": "refuse",
+        "attempt_model": false,
+        "used_fallback": true
+      }
     }
   ],
   "data_prep": {
@@ -345,14 +384,14 @@
     }
   },
   "inference": {
-    "timestamp_utc": "2026-03-11T23:15:15+00:00",
+    "timestamp_utc": "2026-03-18T23:02:51+00:00",
     "stage": "inference",
     "payload": {
       "task": "term",
       "llm_mode": "rag",
       "tiny": false,
       "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
-      "safety_label": "urgent",
+      "safety_label": "refuse",
       "attempt_model": false,
       "used_fallback": true
     }
