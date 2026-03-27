@@ -109,37 +109,155 @@ def parse_pubmedqa_record(ex: dict[str, Any], idx: int) -> tuple[Record, Record]
 
 
 def make_synthetic_note() -> tuple[str, dict[str, Any]]:
-    complaints = ["headache", "cough", "fatigue", "sore throat", "nausea", "back pain"]
-    symptoms_pool = ["dizziness", "fever", "chills", "body aches", "runny nose", "poor sleep", "vomiting"]
-    durations = ["2 days", "1 week", "3 weeks", "since yesterday", "for 4 days"]
-    meds_pool = ["acetaminophen", "ibuprofen", "lisinopril", "metformin", "none"]
-    allergy_pool = ["penicillin", "none known", "peanuts", "sulfa"]
-    history_pool = ["asthma", "hypertension", "type 2 diabetes", "seasonal allergies", "none"]
-    red_flags_pool = ["chest pain", "fainting", "shortness of breath", "none"]
+    # Expanded pools based on common clinical encounter categories
+    complaints = [
+        # General / constitutional
+        "headache", "fatigue", "dizziness", "fever", "weight loss",
+        # Respiratory
+        "cough", "sore throat", "nasal congestion", "wheezing", "shortness of breath on exertion",
+        # GI
+        "nausea", "abdominal pain", "diarrhea", "constipation", "heartburn",
+        # MSK
+        "back pain", "knee pain", "joint stiffness", "shoulder pain", "neck pain",
+        # Neuro
+        "numbness in hands", "migraine", "blurred vision", "tingling in feet",
+        # Cardiovascular
+        "palpitations", "swelling in legs", "lightheadedness on standing",
+        # Dermatological
+        "skin rash", "itching", "wound that won't heal",
+        # Mental health (non-urgent)
+        "insomnia", "anxiety", "low mood", "difficulty concentrating",
+        # Urinary
+        "frequent urination", "burning with urination", "blood in urine",
+        # ENT
+        "ear pain", "hearing loss", "sinus pressure",
+    ]
+
+    symptoms_pool = [
+        "dizziness", "fever", "chills", "body aches", "runny nose", "poor sleep",
+        "vomiting", "sweating", "loss of appetite", "dry mouth", "muscle cramps",
+        "joint swelling", "bruising easily", "night sweats", "unintentional weight loss",
+        "difficulty swallowing", "hoarse voice", "chronic cough", "blood in stool",
+        "excessive thirst", "frequent headaches", "cold intolerance", "heat intolerance",
+        "hair loss", "brittle nails", "puffy face", "swollen lymph nodes",
+        "trouble sleeping", "racing heart", "shortness of breath with activity",
+        "leg cramps at night", "urinary urgency", "flank pain",
+    ]
+
+    durations = [
+        "2 days", "3 days", "5 days", "1 week", "10 days", "2 weeks",
+        "3 weeks", "1 month", "6 weeks", "2 months", "3 months",
+        "since yesterday", "for 4 days", "for about a week",
+        "on and off for 2 months", "worsening over 3 weeks",
+    ]
+
+    meds_pool = [
+        "acetaminophen", "ibuprofen", "lisinopril", "metformin", "atorvastatin",
+        "amlodipine", "omeprazole", "metoprolol", "levothyroxine", "albuterol inhaler",
+        "sertraline", "gabapentin", "prednisone", "aspirin 81mg", "hydrochlorothiazide",
+        "losartan", "fluticasone nasal spray", "cetirizine", "montelukast",
+        "insulin glargine", "sitagliptin", "empagliflozin", "warfarin",
+        "none",
+    ]
+
+    allergy_pool = [
+        "penicillin", "none known", "peanuts", "sulfa drugs", "latex",
+        "iodine contrast", "shellfish", "amoxicillin", "aspirin",
+        "codeine", "NSAIDs", "bee stings", "eggs",
+        "no known drug allergies (NKDA)",
+    ]
+
+    history_pool = [
+        "asthma", "hypertension", "type 2 diabetes", "seasonal allergies",
+        "GERD", "hypothyroidism", "hyperlipidemia", "obesity (BMI > 30)",
+        "coronary artery disease", "atrial fibrillation", "COPD",
+        "chronic kidney disease stage 3", "osteoarthritis", "osteoporosis",
+        "migraine disorder", "anxiety disorder", "major depressive disorder",
+        "sleep apnea (on CPAP)", "gout", "benign prostatic hyperplasia",
+        "iron-deficiency anemia", "vitamin D deficiency",
+        "none",
+    ]
+
+    red_flags_pool = [
+        "chest pain", "fainting", "shortness of breath at rest",
+        "sudden severe headache", "unexplained weight loss > 10 lbs",
+        "blood in stool or vomit", "new onset confusion",
+        "unilateral leg swelling", "fever > 103 F not improving",
+        "none",
+    ]
+
+    # Vary note structure/format for diversity
+    note_templates = [
+        # Template 1: standard clinical note
+        (
+            "Chief complaint: {chief}. Symptoms include {symptoms} for {duration}. "
+            "Vitals today: temp {temp} F, HR {hr}, BP {bp}, SpO2 {spo2}%. "
+            "Current meds: {meds}. "
+            "Allergies: {allergies}. Past history: {history}. "
+            "Red flags discussed: {red_flags}."
+        ),
+        # Template 2: SOAP-style
+        (
+            "S: Patient presents with {chief} x {duration}. Associated symptoms: {symptoms}. "
+            "O: Vitals — T {temp} F, HR {hr}, BP {bp}, SpO2 {spo2}%. "
+            "Medications: {meds}. Allergies: {allergies}. "
+            "PMH: {history}. "
+            "Red flags screened: {red_flags}."
+        ),
+        # Template 3: narrative
+        (
+            "A patient presents today reporting {chief} for {duration}. "
+            "They also describe {symptoms}. "
+            "Vital signs are as follows: temperature {temp} F, heart rate {hr} bpm, "
+            "blood pressure {bp} mmHg, oxygen saturation {spo2}%. "
+            "The patient currently takes {meds} and reports allergies to {allergies}. "
+            "Relevant past medical history includes {history}. "
+            "Red flags reviewed: {red_flags}."
+        ),
+        # Template 4: triage note
+        (
+            "Triage note — CC: {chief} ({duration}). "
+            "Additional: {symptoms}. "
+            "VS: T={temp}, HR={hr}, BP={bp}, O2={spo2}%. "
+            "Meds: {meds}. Allergy: {allergies}. Hx: {history}. "
+            "Red flags: {red_flags}."
+        ),
+    ]
 
     chief = RNG.choice(complaints)
-    symptom_count = RNG.randint(1, 3)
-    symptoms = RNG.sample(symptoms_pool, symptom_count)
+    symptom_count = RNG.randint(1, 4)
+    symptoms = RNG.sample(symptoms_pool, min(symptom_count, len(symptoms_pool)))
     duration = RNG.choice(durations)
 
     vitals = {
-        "temp_f": round(RNG.uniform(97.8, 102.2), 1),
-        "heart_rate": RNG.randint(62, 118),
-        "bp": f"{RNG.randint(102, 156)}/{RNG.randint(62, 98)}",
-        "spo2": RNG.randint(93, 100),
+        "temp_f": round(RNG.uniform(97.0, 103.0), 1),
+        "heart_rate": RNG.randint(55, 125),
+        "bp": f"{RNG.randint(95, 170)}/{RNG.randint(55, 105)}",
+        "spo2": RNG.randint(90, 100),
     }
 
-    meds = [m for m in RNG.sample(meds_pool, RNG.randint(1, 2)) if m != "none"]
-    allergies = [RNG.choice(allergy_pool)]
-    past_history = [h for h in RNG.sample(history_pool, RNG.randint(1, 2)) if h != "none"]
-    red_flags = [RNG.choice(red_flags_pool)]
+    med_count = RNG.randint(0, 4)
+    meds = [m for m in RNG.sample(meds_pool, min(med_count + 1, len(meds_pool))) if m != "none"]
+    allergy_count = RNG.randint(1, 2)
+    allergies = RNG.sample(allergy_pool, min(allergy_count, len(allergy_pool)))
+    hist_count = RNG.randint(0, 3)
+    past_history = [h for h in RNG.sample(history_pool, min(hist_count + 1, len(history_pool))) if h != "none"]
+    red_flag_count = RNG.randint(1, 2)
+    red_flags = RNG.sample(red_flags_pool, min(red_flag_count, len(red_flags_pool)))
 
-    note = (
-        f"Chief complaint: {chief}. Symptoms include {', '.join(symptoms)} for {duration}. "
-        f"Vitals today: temp {vitals['temp_f']} F, HR {vitals['heart_rate']}, BP {vitals['bp']}, SpO2 {vitals['spo2']}%. "
-        f"Current meds: {', '.join(meds) if meds else 'none'}. "
-        f"Allergies: {', '.join(allergies)}. Past history: {', '.join(past_history) if past_history else 'none'}. "
-        f"Red flags discussed: {', '.join(red_flags)}."
+    template = RNG.choice(note_templates)
+    note = template.format(
+        chief=chief,
+        symptoms=", ".join(symptoms),
+        duration=duration,
+        temp=vitals["temp_f"],
+        hr=vitals["heart_rate"],
+        bp=vitals["bp"],
+        spo2=vitals["spo2"],
+        meds=", ".join(meds) if meds else "none",
+        allergies=", ".join(allergies),
+        history=", ".join(past_history) if past_history else "none",
+        red_flags=", ".join(red_flags),
     )
 
     target = {
@@ -150,7 +268,7 @@ def make_synthetic_note() -> tuple[str, dict[str, Any]]:
         "meds": meds,
         "allergies": allergies,
         "past_history": past_history,
-        "red_flags": [] if red_flags == ["none"] else red_flags,
+        "red_flags": [rf for rf in red_flags if rf != "none"],
     }
     return note, target
 

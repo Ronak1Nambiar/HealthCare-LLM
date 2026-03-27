@@ -1,0 +1,106 @@
+{
+  "best_global_step": 40,
+  "best_metric": 10.794488906860352,
+  "best_model_checkpoint": "C:\\Users\\obm_n\\Downloads\\HealthLLM\\HealthCare-LLM\\models\\lora\\checkpoint-40",
+  "epoch": 0.625,
+  "eval_steps": 20,
+  "global_step": 40,
+  "is_hyper_param_search": false,
+  "is_local_process_zero": true,
+  "is_world_process_zero": true,
+  "log_history": [
+    {
+      "epoch": 0.078125,
+      "grad_norm": 0.0009389226324856281,
+      "learning_rate": 0.00018400000000000003,
+      "loss": 10.793350219726562,
+      "step": 5
+    },
+    {
+      "epoch": 0.15625,
+      "grad_norm": 0.002491550985723734,
+      "learning_rate": 0.000164,
+      "loss": 10.790109252929687,
+      "step": 10
+    },
+    {
+      "epoch": 0.234375,
+      "grad_norm": 0.0017622880404815078,
+      "learning_rate": 0.000144,
+      "loss": 10.794645690917969,
+      "step": 15
+    },
+    {
+      "epoch": 0.3125,
+      "grad_norm": 0.0033619620371609926,
+      "learning_rate": 0.000124,
+      "loss": 10.795685577392579,
+      "step": 20
+    },
+    {
+      "epoch": 0.3125,
+      "eval_loss": 10.79456901550293,
+      "eval_runtime": 0.4798,
+      "eval_samples_per_second": 66.689,
+      "eval_steps_per_second": 66.689,
+      "step": 20
+    },
+    {
+      "epoch": 0.390625,
+      "grad_norm": 0.0041378154419362545,
+      "learning_rate": 0.00010400000000000001,
+      "loss": 10.793494415283202,
+      "step": 25
+    },
+    {
+      "epoch": 0.46875,
+      "grad_norm": 0.003556178417056799,
+      "learning_rate": 8.4e-05,
+      "loss": 10.793260955810547,
+      "step": 30
+    },
+    {
+      "epoch": 0.546875,
+      "grad_norm": 0.004414919763803482,
+      "learning_rate": 6.400000000000001e-05,
+      "loss": 10.795111846923827,
+      "step": 35
+    },
+    {
+      "epoch": 0.625,
+      "grad_norm": 0.0032519015949219465,
+      "learning_rate": 4.4000000000000006e-05,
+      "loss": 10.793446350097657,
+      "step": 40
+    },
+    {
+      "epoch": 0.625,
+      "eval_loss": 10.794488906860352,
+      "eval_runtime": 0.445,
+      "eval_samples_per_second": 71.914,
+      "eval_steps_per_second": 71.914,
+      "step": 40
+    }
+  ],
+  "logging_steps": 5,
+  "max_steps": 50,
+  "num_input_tokens_seen": 0,
+  "num_train_epochs": 1,
+  "save_steps": 20,
+  "stateful_callbacks": {
+    "TrainerControl": {
+      "args": {
+        "should_epoch_stop": false,
+        "should_evaluate": false,
+        "should_log": false,
+        "should_save": true,
+        "should_training_stop": false
+      },
+      "attributes": {}
+    }
+  },
+  "total_flos": 17027118900.0,
+  "train_batch_size": 1,
+  "trial_name": null,
+  "trial_params": null
+}

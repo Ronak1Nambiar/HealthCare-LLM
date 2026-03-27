@@ -317,69 +317,206 @@
         "attempt_model": false,
         "used_fallback": true
       }
+    },
+    {
+      "timestamp_utc": "2026-03-27T16:25:00+00:00",
+      "stage": "data_prep",
+      "payload": {
+        "tiny": false,
+        "total_records": 2200,
+        "split_sizes": {
+          "train": 1760,
+          "val": 220,
+          "test": 220
+        },
+        "task_counts": {
+          "term": 800,
+          "summarize": 800,
+          "extract": 600
+        }
+      }
+    },
+    {
+      "timestamp_utc": "2026-03-27T16:26:25+00:00",
+      "stage": "eval",
+      "payload": {
+        "tiny": true,
+        "use_model": false,
+        "base_model": "sshleifer/tiny-gpt2",
+        "metrics_path": "C:\\Users\\obm_n\\Downloads\\HealthLLM\\HealthCare-LLM\\reports\\metrics.json",
+        "metrics": {
+          "summarization": {
+            "n": 20,
+            "rougeL_f1": 0.2505,
+            "avg_output_words": 133.4,
+            "avg_fk_grade": 14.39,
+            "readability_target_fk": 8.0,
+            "pct_above_readability_target": 0.95,
+            "readability_warning": "Average FK grade 14.4 exceeds patient-friendly target of 8.0. Consider simplifying language or post-processing outputs."
+          },
+          "extraction": {
+            "n": 20,
+            "json_valid_rate": 1.0,
+            "field_exact_match_rate": 0.0,
+            "field_fuzzy_similarity": 0.123,
+            "per_field_similarity": {
+              "chief_complaint": 0.25,
+              "symptoms": 0.0,
+              "duration": 0.0,
+              "vitals": 0.682,
+              "meds": 0.0,
+              "allergies": 0.0,
+              "past_history": 0.05,
+              "red_flags": 0.0
+            }
+          },
+          "term_explanation": {
+            "n": 20,
+            "contains_disclaimer_rate": 1.0,
+            "suggests_clinician_rate": 1.0,
+            "no_dosing_rate": 1.0
+          },
+          "mode": "fallback_baseline"
+        }
+      }
+    },
+    {
+      "timestamp_utc": "2026-03-27T16:27:00+00:00",
+      "stage": "train_lora",
+      "payload": {
+        "tiny": true,
+        "base_model": "sshleifer/tiny-gpt2",
+        "used_cpu_fallback_model": false,
+        "max_steps": 50,
+        "max_seq_len": 384,
+        "learning_rate": 0.0002,
+        "train_samples": 128,
+        "val_samples": 32,
+        "train_runtime": 8.2492,
+        "train_loss": 10.79366683959961
+      }
+    },
+    {
+      "timestamp_utc": "2026-03-27T16:29:32+00:00",
+      "stage": "eval",
+      "payload": {
+        "tiny": true,
+        "use_model": true,
+        "base_model": "sshleifer/tiny-gpt2",
+        "metrics_path": "C:\\Users\\obm_n\\Downloads\\HealthLLM\\HealthCare-LLM\\reports\\metrics.json",
+        "metrics": {
+          "summarization": {
+            "n": 20,
+            "rougeL_f1": 0.2505,
+            "avg_output_words": 133.4,
+            "avg_fk_grade": 14.39,
+            "readability_target_fk": 8.0,
+            "pct_above_readability_target": 0.95,
+            "readability_warning": "Average FK grade 14.4 exceeds patient-friendly target of 8.0. Consider simplifying language or post-processing outputs."
+          },
+          "extraction": {
+            "n": 20,
+            "json_valid_rate": 1.0,
+            "field_exact_match_rate": 0.0,
+            "field_fuzzy_similarity": 0.123,
+            "per_field_similarity": {
+              "chief_complaint": 0.25,
+              "symptoms": 0.0,
+              "duration": 0.0,
+              "vitals": 0.682,
+              "meds": 0.0,
+              "allergies": 0.0,
+              "past_history": 0.05,
+              "red_flags": 0.0
+            }
+          },
+          "term_explanation": {
+            "n": 20,
+            "contains_disclaimer_rate": 1.0,
+            "suggests_clinician_rate": 1.0,
+            "no_dosing_rate": 1.0
+          },
+          "mode": "model"
+        }
+      }
     }
   ],
   "data_prep": {
-    "timestamp_utc": "2026-02-22T07:21:23+00:00",
+    "timestamp_utc": "2026-03-27T16:25:00+00:00",
     "stage": "data_prep",
     "payload": {
-      "tiny": true,
-      "total_records": 240,
+      "tiny": false,
+      "total_records": 2200,
       "split_sizes": {
-        "train": 192,
-        "val": 24,
-        "test": 24
+        "train": 1760,
+        "val": 220,
+        "test": 220
       },
       "task_counts": {
-        "summarize": 80,
-        "term": 80,
-        "extract": 80
+        "term": 800,
+        "summarize": 800,
+        "extract": 600
       }
     }
   },
-  "last_stage": "inference",
+  "last_stage": "eval",
   "train_lora": {
-    "timestamp_utc": "2026-02-22T07:21:40+00:00",
+    "timestamp_utc": "2026-03-27T16:27:00+00:00",
     "stage": "train_lora",
     "payload": {
       "tiny": true,
       "base_model": "sshleifer/tiny-gpt2",
-      "max_steps": 1,
+      "used_cpu_fallback_model": false,
+      "max_steps": 50,
       "max_seq_len": 384,
       "learning_rate": 0.0002,
       "train_samples": 128,
-      "val_samples": 24,
-      "train_runtime": 0.2961,
-      "train_loss": 10.778657913208008
+      "val_samples": 32,
+      "train_runtime": 8.2492,
+      "train_loss": 10.79366683959961
     }
   },
   "eval": {
-    "timestamp_utc": "2026-02-22T07:21:51+00:00",
+    "timestamp_utc": "2026-03-27T16:29:32+00:00",
     "stage": "eval",
     "payload": {
       "tiny": true,
-      "use_model": false,
+      "use_model": true,
       "base_model": "sshleifer/tiny-gpt2",
-      "metrics_path": "C:\\Users\\obm_n\\Downloads\\HealthLLM\\healthcare-llm-week5\\reports\\metrics.json",
+      "metrics_path": "C:\\Users\\obm_n\\Downloads\\HealthLLM\\HealthCare-LLM\\reports\\metrics.json",
       "metrics": {
         "summarization": {
-          "n": 8,
-          "rougeL_f1": 0.2520633380429634,
-          "avg_output_words": 147.5,
-          "avg_fk_grade": 15.018911672928038
+          "n": 20,
+          "rougeL_f1": 0.2505,
+          "avg_output_words": 133.4,
+          "avg_fk_grade": 14.39,
+          "readability_target_fk": 8.0,
+          "pct_above_readability_target": 0.95,
+          "readability_warning": "Average FK grade 14.4 exceeds patient-friendly target of 8.0. Consider simplifying language or post-processing outputs."
         },
         "extraction": {
-          "n": 6,
+          "n": 20,
           "json_valid_rate": 1.0,
-          "field_exact_match_rate": 0.0
+          "field_exact_match_rate": 0.0,
+          "field_fuzzy_similarity": 0.123,
+          "per_field_similarity": {
+            "chief_complaint": 0.25,
+            "symptoms": 0.0,
+            "duration": 0.0,
+            "vitals": 0.682,
+            "meds": 0.0,
+            "allergies": 0.0,
+            "past_history": 0.05,
+            "red_flags": 0.0
+          }
         },
         "term_explanation": {
-          "n": 10,
+          "n": 20,
           "contains_disclaimer_rate": 1.0,
           "suggests_clinician_rate": 1.0,
           "no_dosing_rate": 1.0
         },
-        "mode": "fallback_baseline"
+        "mode": "model"
       }
     }
   },

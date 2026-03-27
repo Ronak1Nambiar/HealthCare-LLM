@@ -30,5 +30,5 @@
     "suggests_clinician_rate": 1.0,
     "no_dosing_rate": 1.0
   },
-  "mode": "model"
+  "mode": "fallback_baseline"
 }

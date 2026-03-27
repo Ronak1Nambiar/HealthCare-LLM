@@ -1,6 +1,9 @@
 {
   "base_model": "sshleifer/tiny-gpt2",
-  "max_steps": 1,
+  "intended_production_model": "Qwen/Qwen2.5-1.5B-Instruct",
+  "used_cpu_fallback_model": false,
+  "adapter_compatible_with_production": true,
+  "max_steps": 50,
   "max_seq_len": 384,
   "lora_r": 16,
   "lora_alpha": 32,

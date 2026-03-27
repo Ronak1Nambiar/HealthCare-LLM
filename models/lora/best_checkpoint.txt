@@ -1,0 +1,6 @@
+{
+  "base_model": "sshleifer/tiny-gpt2",
+  "train_loss": 10.79366683959961,
+  "adapter_dir": "C:\\Users\\obm_n\\Downloads\\HealthLLM\\HealthCare-LLM\\models\\lora",
+  "is_production_model": false
+}

@@ -84,9 +84,13 @@ class TestFieldSimilarity:
         sim = _field_similarity("headache and fever", "headache")
         assert 0.0 < sim < 1.0
 
-    def test_empty_gold_gives_one(self):
-        # Empty gold means no expected value — any pred is fine
-        assert _field_similarity("anything", "") == 1.0
+    def test_empty_gold_with_pred_penalized(self):
+        # Empty gold but non-empty pred gets 0.5 (penalty for hallucinating)
+        assert _field_similarity("anything", "") == 0.5
+
+    def test_empty_gold_empty_pred_gives_one(self):
+        # Both empty is a perfect match
+        assert _field_similarity("", "") == 1.0
 
     def test_list_similarity(self):
         sim = _field_similarity(["fever", "chills"], ["fever", "chills"])
