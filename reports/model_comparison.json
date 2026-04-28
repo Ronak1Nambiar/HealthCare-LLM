@@ -1,0 +1,96 @@
+{
+  "hardware": {
+    "cpu": "x86_64",
+    "gpu": null,
+    "gpu_vram_total_gb": null,
+    "ram_gb": 16.86,
+    "pytorch_version": "2.11.0+cpu",
+    "cuda_available": false
+  },
+  "qwen2.5-1.5b-instruct": {
+    "model_name": "Qwen/Qwen2.5-1.5B-Instruct",
+    "load_status": "success",
+    "error": null,
+    "device_used": "cpu",
+    "n_samples_per_task": 5,
+    "max_new_tokens_used": 80,
+    "load_time_s": 70.66,
+    "summarization": {
+      "n": 5,
+      "rougeL_f1": null,
+      "avg_output_words": 112.4,
+      "avg_fk_grade": 13.64,
+      "readability_target_fk": 8.0,
+      "pct_above_readability_target": 1.0,
+      "readability_warning": "Average FK grade 13.6 exceeds patient-friendly target of 8.0. Consider simplifying language or post-processing outputs.",
+      "eval_wall_s": 72.67
+    },
+    "extraction": {
+      "n": 5,
+      "json_valid_rate": 0.0,
+      "field_exact_match_rate": 0.0,
+      "field_fuzzy_similarity": 0.0,
+      "per_field_similarity": {},
+      "eval_wall_s": 65.62
+    },
+    "safety": {
+      "n": 5,
+      "contains_disclaimer_rate": 1.0,
+      "suggests_clinician_rate": 1.0,
+      "no_dosing_rate": 1.0,
+      "eval_wall_s": 71.62
+    }
+  },
+  "gemma-2-2b-it": {
+    "model_name": "google/gemma-2-2b-it",
+    "load_status": "failed",
+    "error": "Traceback (most recent call last):\n  File \"/usr/local/lib/python3.11/dist-packages/huggingface_hub/utils/_http.py\", line 761, in hf_raise_for_status\n    response.raise_for_status()\n  File \"/usr/local/lib/python3.11/dist-packages/httpx/_models.py\", line 829, in raise_for_status\n    raise HTTPStatusError(message, request=request, response=self)\nhttpx.HTTPStatusError: Client error '401 Unauthorized' for url 'https://huggingface.co/google/gemma-2-2b-it/resolve/main/config.json'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/usr/local/lib/python3.11/dist-packages/transformers/utils/hub.py\", line 422, in cached_files\n    hf_hub_download(\n  File \"/usr/local/lib/python3.11/dist-packages/huggingface_hub/utils/_validators.py\", line 88, in _inner_fn\n    return fn(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/dist-packages/huggingface_hub/file_download.py\", line 997, in hf_hub_download\n    return _hf_hub_download_to_cache_dir(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/dist-packages/huggingface_hub/file_download.py\", line 1148, in _hf_hub_download_to_cache_dir\n    _raise_on_head_call_error(head_call_error, force_download, local_files_only)\n  File \"/usr/local/lib/python3.11/dist-packages/huggingface_hub/file_download.py\", line 1782, in _raise_on_head_call_error\n    raise head_call_error\n  File \"/usr/local/lib/python3.11/dist-packages/huggingface_hub/file_download.py\", line 1669, in _get_metadata_or_catch_error\n    metadata = get_hf_file_metadata(\n               ^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/dist-packages/huggingface_hub/utils/_validators.py\", line 88, in _inner_fn\n    return fn(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/dist-packages/huggingface_hub/file_download.py\", line 1591, in get_hf_file_metadata\n    response = _httpx_follow_relative_redirects_with_backoff(\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/dist-packages/huggingface_hub/utils/_http.py\", line 692, in _httpx_follow_relative_redirects_with_backoff\n    hf_raise_for_status(response)\n  File \"/usr/local/lib/python3.11/dist-packages/huggingface_hub/utils/_http.py\", line 787, in hf_raise_for_status\n    raise _format(GatedRepoError, message, response, repo_type=repo_type, repo_id=repo_id) from e\nhuggingface_hub.errors.GatedRepoError: 401 Client Error. (Request ID: 957a00ed-97e1-40ae-ba51-bb45a406ce95)\n\nCannot access gated repo for url https://huggingface.co/google/gemma-2-2b-it/resolve/main/config.json.\nAccess to model google/gemma-2-2b-it is restricted. You must have access to it and be authenticated to access it. Please log in.\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/usr/local/lib/python3.11/dist-packages/transformers/models/auto/tokenization_auto.py\", line 686, in from_pretrained\n    config = AutoConfig.from_pretrained(\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/dist-packages/transformers/models/auto/configuration_auto.py\", line 374, in from_pretrained\n    config_dict, unused_kwargs = PreTrainedConfig.get_config_dict(pretrained_model_name_or_path, **kwargs)\n                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/dist-packages/transformers/configuration_utils.py\", line 673, in get_config_dict\n    config_dict, kwargs = cls._get_config_dict(pretrained_model_name_or_path, **kwargs)\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/dist-packages/transformers/configuration_utils.py\", line 728, in _get_config_dict\n    resolved_config_file = cached_file(\n                           ^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/dist-packages/transformers/utils/hub.py\", line 278, in cached_file\n    file = cached_files(path_or_repo_id=path_or_repo_id, filenames=[filename], **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/dist-packages/transformers/utils/hub.py\", line 488, in cached_files\n    raise OSError(\nOSError: You are trying to access a gated repo.\nMake sure to have access to it at https://huggingface.co/google/gemma-2-2b-it.\n401 Client Error. (Request ID: 957a00ed-97e1-40ae-ba51-bb45a406ce95)\n\nCannot access gated repo for url https://huggingface.co/google/gemma-2-2b-it/resolve/main/config.json.\nAccess to model google/gemma-2-2b-it is restricted. You must have access to it and be authenticated to access it. Please log in.\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/usr/local/lib/python3.11/dist-packages/huggingface_hub/utils/_http.py\", line 761, in hf_raise_for_status\n    response.raise_for_status()\n  File \"/usr/local/lib/python3.11/dist-packages/httpx/_models.py\", line 829, in raise_for_status\n    raise HTTPStatusError(message, request=request, response=self)\nhttpx.HTTPStatusError: Client error '401 Unauthorized' for url 'https://huggingface.co/google/gemma-2-2b-it/resolve/main/config.json'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/usr/local/lib/python3.11/dist-packages/transformers/utils/hub.py\", line 422, in cached_files\n    hf_hub_download(\n  File \"/usr/local/lib/python3.11/dist-packages/huggingface_hub/utils/_validators.py\", line 88, in _inner_fn\n    return fn(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/dist-packages/huggingface_hub/file_download.py\", line 997, in hf_hub_download\n    return _hf_hub_download_to_cache_dir(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/dist-packages/huggingface_hub/file_download.py\", line 1148, in _hf_hub_download_to_cache_dir\n    _raise_on_head_call_error(head_call_error, force_download, local_files_only)\n  File \"/usr/local/lib/python3.11/dist-packages/huggingface_hub/file_download.py\", line 1782, in _raise_on_head_call_error\n    raise head_call_error\n  File \"/usr/local/lib/python3.11/dist-packages/huggingface_hub/file_download.py\", line 1669, in _get_metadata_or_catch_error\n    metadata = get_hf_file_metadata(\n               ^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/dist-packages/huggingface_hub/utils/_validators.py\", line 88, in _inner_fn\n    return fn(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/dist-packages/huggingface_hub/file_download.py\", line 1591, in get_hf_file_metadata\n    response = _httpx_follow_relative_redirects_with_backoff(\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/dist-packages/huggingface_hub/utils/_http.py\", line 692, in _httpx_follow_relative_redirects_with_backoff\n    hf_raise_for_status(response)\n  File \"/usr/local/lib/python3.11/dist-packages/huggingface_hub/utils/_http.py\", line 787, in hf_raise_for_status\n    raise _format(GatedRepoError, message, response, repo_type=repo_type, repo_id=repo_id) from e\nhuggingface_hub.errors.GatedRepoError: 401 Client Error. (Request ID: 6a591971-75af-43b5-85ad-168b6a28ff50)\n\nCannot access gated repo for url https://huggingface.co/google/gemma-2-2b-it/resolve/main/config.json.\nAccess to model google/gemma-2-2b-it is restricted. You must have access to it and be authenticated to access it. Please log in.\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/home/user/HealthCare-LLM/generate_model_comparison.py\", line 104, in eval_one_model\n    model, tokenizer = orig_loader(\n                       ^^^^^^^^^^^^\n  File \"/home/user/HealthCare-LLM/src/inference.py\", line 103, in load_model_and_tokenizer\n    tokenizer = AutoTokenizer.from_pretrained(base_model, trust_remote_code=True)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/dist-packages/transformers/models/auto/tokenization_auto.py\", line 690, in from_pretrained\n    config = PreTrainedConfig.from_pretrained(pretrained_model_name_or_path, **kwargs)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/dist-packages/transformers/configuration_utils.py\", line 632, in from_pretrained\n    config_dict, kwargs = cls.get_config_dict(pretrained_model_name_or_path, **kwargs)\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/dist-packages/transformers/configuration_utils.py\", line 673, in get_config_dict\n    config_dict, kwargs = cls._get_config_dict(pretrained_model_name_or_path, **kwargs)\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/dist-packages/transformers/configuration_utils.py\", line 728, in _get_config_dict\n    resolved_config_file = cached_file(\n                           ^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/dist-packages/transformers/utils/hub.py\", line 278, in cached_file\n    file = cached_files(path_or_repo_id=path_or_repo_id, filenames=[filename], **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/dist-packages/transformers/utils/hub.py\", line 488, in cached_files\n    raise OSError(\nOSError: You are trying to access a gated repo.\nMake sure to have access to it at https://huggingface.co/google/gemma-2-2b-it.\n401 Client Error. (Request ID: 6a591971-75af-43b5-85ad-168b6a28ff50)\n\nCannot access gated repo for url https://huggingface.co/google/gemma-2-2b-it/resolve/main/config.json.\nAccess to model google/gemma-2-2b-it is restricted. You must have access to it and be authenticated to access it. Please log in.",
+    "device_used": "cpu",
+    "n_samples_per_task": 5,
+    "max_new_tokens_used": 80
+  },
+  "tiny-gpt2": {
+    "model_name": "sshleifer/tiny-gpt2",
+    "load_status": "success",
+    "error": null,
+    "device_used": "cpu",
+    "n_samples_per_task": 5,
+    "max_new_tokens_used": 80,
+    "load_time_s": 1.17,
+    "summarization": {
+      "n": 5,
+      "rougeL_f1": null,
+      "avg_output_words": 112.4,
+      "avg_fk_grade": 13.64,
+      "readability_target_fk": 8.0,
+      "pct_above_readability_target": 1.0,
+      "readability_warning": "Average FK grade 13.6 exceeds patient-friendly target of 8.0. Consider simplifying language or post-processing outputs.",
+      "eval_wall_s": 1.85
+    },
+    "extraction": {
+      "n": 5,
+      "json_valid_rate": 1.0,
+      "field_exact_match_rate": 0.0,
+      "field_fuzzy_similarity": 0.11,
+      "per_field_similarity": {
+        "chief_complaint": 0.2,
+        "symptoms": 0.0,
+        "duration": 0.0,
+        "vitals": 0.684,
+        "meds": 0.0,
+        "allergies": 0.0,
+        "past_history": 0.0,
+        "red_flags": 0.0
+      },
+      "eval_wall_s": 1.75
+    },
+    "safety": {
+      "n": 5,
+      "contains_disclaimer_rate": 1.0,
+      "suggests_clinician_rate": 1.0,
+      "no_dosing_rate": 1.0,
+      "eval_wall_s": 1.6
+    }
+  },
+  "total_wall_s": 287.73
+}

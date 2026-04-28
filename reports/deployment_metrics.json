@@ -1,0 +1,56 @@
+{
+  "hardware": {
+    "cpu": "x86_64",
+    "gpu": null,
+    "gpu_vram_total_gb": null,
+    "ram_gb": 16.86,
+    "pytorch_version": "2.11.0+cpu",
+    "cuda_available": false,
+    "python_version": "3.11.15",
+    "os": "Linux-6.18.5-x86_64-with-glibc2.39"
+  },
+  "production_model": "Qwen/Qwen2.5-1.5B-Instruct",
+  "notes": "All measurements are CPU-only (no CUDA). The LoRA adapter was trained on sshleifer/tiny-gpt2 (target_modules=[c_attn,c_proj]) and is incompatible with Qwen2.5-1.5B-Instruct. Deployment metrics use base model only.",
+  "disk": {
+    "base_model_hf_cache_mb": 6197.9,
+    "base_model_hf_cache_path": "/root/.cache/huggingface/hub/models--Qwen--Qwen2.5-1.5B-Instruct",
+    "lora_adapter_mb": 10.8,
+    "lora_adapter_path": "/home/user/HealthCare-LLM/models/lora",
+    "rag_index_mb": 2.0,
+    "rag_index_path": "/home/user/HealthCare-LLM/models/rag",
+    "total_deployment_mb": 6210.7,
+    "note": ""
+  },
+  "lora_compatibility": {
+    "attempted": true,
+    "load_status": "failed",
+    "error": "Traceback (most recent call last):\n  File \"/home/user/HealthCare-LLM/generate_deployment_metrics.py\", line 136, in try_load_lora_status\n    _m, _t = load_model_and_tokenizer(\n             ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/HealthCare-LLM/src/inference.py\", line 111, in load_model_and_tokenizer\n    model = PeftModel.from_pretrained(model, str(LORA_DIR))\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/dist-packages/peft/peft_model.py\", line 574, in from_pretrained\n    model = MODEL_TYPE_TO_PEFT_MODEL_MAPPING[config.task_type](\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/dist-packages/peft/peft_model.py\", line 1955, in __init__\n    super().__init__(model, peft_config, adapter_name, **kwargs)\n  File \"/usr/local/lib/python3.11/dist-packages/peft/peft_model.py\", line 129, in __init__\n    self.base_model = cls(model, {adapter_name: peft_config}, adapter_name)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/dist-packages/peft/tuners/tuners_utils.py\", line 315, in __init__\n    self.inject_adapter(self.model, adapter_name, low_cpu_mem_usage=low_cpu_mem_usage, state_dict=state_dict)\n  File \"/usr/local/lib/python3.11/dist-packages/peft/tuners/tuners_utils.py\", line 1008, in inject_adapter\n    raise ValueError(error_msg)\nValueError: Target modules {'c_proj', 'c_attn'} not found in the base model. Please check the target modules and try again."
+  },
+  "memory": {
+    "load_time_s": 1.2,
+    "ram_delta_on_load_mb": 406.3,
+    "peak_rss_during_inference_mb": 3258.0,
+    "device": "cpu",
+    "gpu_vram_peak_mb": null,
+    "note": "No CUDA \u2014 VRAM measurements not applicable."
+  },
+  "latency": {
+    "cold_start_s": 15.06,
+    "n_queries": 10,
+    "mean_query_s": 13.944,
+    "p95_query_s": 14.414,
+    "min_query_s": 13.437,
+    "max_query_s": 14.576,
+    "mean_output_tokens": 119.5,
+    "tokens_per_second": 8.57,
+    "device": "cpu",
+    "max_new_tokens_cap": 80,
+    "note": "CPU-only measurements. GPU latency expected to be 10-50x faster. cold_start_s includes model loading from HF cache."
+  },
+  "pipeline_component_overhead": {
+    "input_sanitization_mean_ms": 0.0004,
+    "safety_classification_mean_ms": 0.0429,
+    "rag_retrieval_mean_ms": 0.6103,
+    "output_validation_mean_ms": 0.0004
+  }
+}
